@@ -13,7 +13,7 @@
   padding-bottom: 25;
 }
 
-.card-link {
+.gallery__link {
   width: 100%;
   flex-basis: calc((100% - 60px) / 4);
 
@@ -74,6 +74,7 @@
   text-shadow: 1px 1px 1px #fff;
 
   font-size: 12;
+  text-decoration: none;
 }
 
 .info-item-likes {
@@ -118,4 +119,17 @@
 
 ul {
   list-style-type: none;
+}
+
+.load-more {
+  height: 40px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
 }

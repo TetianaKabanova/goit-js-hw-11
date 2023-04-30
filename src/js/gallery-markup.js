@@ -11,7 +11,7 @@ export function createGalleryMarkup(photos) {
         downloads,
       }) => {
         return `
-            <a href='${largeImageURL}' class="card-link js-card-link">
+            <a href='${largeImageURL}' class="gallery__link js-card-link">
             <div class="photo-card">
               <img class="photo" src="${webformatURL}" alt="${tags}" loading="lazy" />
               <div class="info">
