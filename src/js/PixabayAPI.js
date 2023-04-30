@@ -3,7 +3,6 @@ import { KEY } from './api-key';
 
 export class PixabayAPI {
   #BASE_URL = 'https://pixabay.com/api/';
-
   #query = '';
 
   constructor() {

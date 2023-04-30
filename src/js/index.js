@@ -7,19 +7,14 @@ import { createGalleryMarkup } from './gallery-markup';
 const refs = {
   searchForm: document.getElementById('search-form'),
   gallery: document.querySelector('.gallery'),
-  btnLoadMore: document.querySelector('.load-more'),
+  loadMoreBtn: document.querySelector('.load-more'),
+  buttonSearch: document.querySelector('.search-form-btn'),
 };
 
-let query = '';
 let page = 1;
-let simpleLightBox;
-const perPage = 40;
-
-// refs.searchForm.addEventListener('submit', onSearchForm);
+const pixabayApi = new PixabayAPI();
 
 Notiflix.Report.info('😎 Hi!', 'Are you looking for something?', 'Ok');
-
-const pixabayApi = new PixabayAPI();
 
 let lightbox = new SimpleLightbox('.gallery__link', {
   captions: true,
@@ -57,6 +52,7 @@ async function onRenderPage(e) {
 
     createMarkup(response.data.hits);
     lightbox.refresh();
+    autoScroll();
 
     Notiflix.Notify.success(`Hooray! We found ${totalPicturs} images.`);
   } catch (err) {
@@ -75,14 +71,14 @@ async function onLoadMore() {
     createMarkup(response.data.hits);
 
     lightbox.refresh();
+    autoScroll();
 
-    if (totalHits < perPage) {
-      refs.btnLoadMore.classList.add('is-hidden');
-      //   Notiflix.Notify.warning(
-      //     'We are sorry, but you have reached the end of search results😉'
-      //   );
+    if (lastPage === pixabayApi.page) {
+      Notiflix.Notify.warning(
+        'We are sorry, but you have reached the end of search results😉'
+      );
       window.removeEventListener('scroll', handleScroll);
-      //   return;
+      return;
     }
   } catch (err) {
     Notiflix.Notify.warning(
@@ -95,50 +91,16 @@ function createMarkup(hits) {
   const markup = createGalleryMarkup(hits);
   refs.gallery.insertAdjacentHTML('beforeend', markup);
 }
+function alertIfEmptySearch() {
+  Notiflix.Notify.failure('Please specify your search query.');
+}
 
-// refs.btnLoadMore.addEventListener('click', fetchImages);
-
-// fetchImages(({ query, page, perPage })) {
-
-//     if (data.totalHits === 0) {
-//         Notiflix.Notify.failure(
-//             'Sorry, there are no images matching your search query. Please try again.'
-//         );
-//     } else {
-//         renderGallery(data.hits);
-//         simpleLightBox = new SimpleLightbox('.gallery__link').refresh();
-//         Notiflix.Notify.success(
-//             `Hooray! We have found ${data.totalHits} images.`
-//         );
-//     }
-
-//         refs.searchForm.reset();
-// }
-// function onloadMore() {
-//   page += 1;
-//   //   simpleLightBox.destroy();
-//   fetchImages(query, page, perPage)
-//     .then(data => {
-//       renderGallery(data.hits);
-//       simpleLightBox = new SimpleLightbox('.gallery a').refresh();
-//       const totalPages = Math.ceil(data.totalHits / perPage);
-//       if (page > totalPages) {
-//         Notiflix.Notify.failure(
-//           "We're sorry, but you've reached the end of search results."
-//         );
-//       }
-//     })
-//     .catch(error => console.log(error));
-// }
-
-function checkIfEndOfPage() {
-  return (
-    window.innerHeight + window.pageYOffset >=
-    document.documentElement.scrollHeight
+function alertEndOfSearch() {
+  Notiflix.Notify.warning(
+    'We are sorry, but you have reached the end of search results😉'
   );
 }
 
-// Бескінечний скрол
 function handleScroll() {
   const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
   if (scrollTop + clientHeight >= scrollHeight - 5) {
@@ -146,21 +108,6 @@ function handleScroll() {
   }
 }
 
-// function onSearchForm(e) {
-//   e.preventDefault();
-//   page = 1;
-//   query = e.currentTarget.elements.searchQuery.value.trim();
-//   refs.gallery.innerHTML = '';
-//   if (query === '') {
-//     Notiflix.Notify.failure(
-//       'The search string cannot be empty. Please specify your search query.'
-//     );
-//     return;
-//   }
-
-//
-
-// Автоматичне прокручування сторінки на висоту двух картинок
 function autoScroll() {
   const { height: cardHeight } = document
     .querySelector('.gallery')
@@ -171,11 +118,3 @@ function autoScroll() {
     behavior: 'smooth',
   });
 }
-
-// function showLoadMorePage() {
-//   if (checkIfEndOfPage()) {
-//     onloadMore();
-//   }
-// }
-
-// window.addEventListener('scroll', showLoadMorePage);
