@@ -102,11 +102,11 @@
   color: #ff0000;
 }
 
-.is-hidden {
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-}
+// .is-hidden {
+//   visibility: hidden;
+//   opacity: 0;
+//   pointer-events: none;
+// }
 
 .load-more {
   display: block;
@@ -132,4 +132,8 @@ ul {
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease-in-out;
+}
+
+button.hidden {
+  display: none;
 }
