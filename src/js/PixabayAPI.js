@@ -1,31 +1,30 @@
 import axios from 'axios';
 
-// const URL = 'https://pixabay.com/api/';
-// const API_KEY = '35851703-1327ea85a263036dc5c6068c0';
-
-// function getPhotos(query) {
-//   return fetch(`${URL}?key=${API_KEY}&q=${query}&per_page=40`).then(data =>
-//     data.json()
-//   );
-// }
-
-// export { getPhotos };
-
 export default class PixabayAPI {
   static URL = 'https://pixabay.com/api/';
   static API_KEY = '35851703-1327ea85a263036dc5c6068c0';
-  constructor() {
+  constructor(totalHits = 0) {
     this.page = 1;
-    // #per_page = 40;
-    this.query = '';
-    // #totalPages = 0;
+    this.searchQuery = '';
+    this.totalPages = 0;
+    this.totalHits = totalHits;
   }
-  getPhotos() {
-    const url = `${PixabayAPI.URL}?key=${PixabayAPI.API_KEY}&q=${this.query}&per_page=40&page=${this.page}`;
-    return fetch(url).then(data => {
-      this.incrementPage();
-      return data.json();
-    });
+
+  async getPhotos() {
+    const params = {
+      page: this.page,
+      q: this.query,
+      per_page: this.per_page,
+      image_type: 'photo',
+      orientation: 'horizontal',
+      safesearch: true,
+    };
+    const url = `${PixabayAPI.URL}?key=${PixabayAPI.API_KEY}&q=${this.searchQuery}&per_page=40&page=${this.page}`;
+    const { data } = await axios.get(url, { params });
+
+    this.incrementPage();
+
+    return data;
   }
 
   incrementPage() {
@@ -34,8 +33,25 @@ export default class PixabayAPI {
 
   resetPage() {
     this.page = 1;
+    this.totalPages = 0;
   }
-}
+
+  get guery() {
+    return this.searchQuery;
+  }
+
+  set query(newQuery) {
+    this.searchQuery = newQuery;
+  }
+
+  setTotal(totalHits) {
+    this.totalPages = totalHits;
+  }
+
+//   countTotalPages(totalHits) {
+//     return (this.totalPages = Math.ceil(totalHits / this.per_page));
+//   }
+// }
 
 //   async getPhotos() {
 //     const params = {

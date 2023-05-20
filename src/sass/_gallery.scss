@@ -1,6 +1,5 @@
 .gallery {
   padding-top: 40;
-
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -89,19 +88,6 @@
   align-items: center;
 }
 
-.bi {
-  width: 1rem;
-  color: #fff;
-
-  &:hover {
-    color: #ff0000;
-  }
-}
-
-.red {
-  color: #ff0000;
-}
-
 // .is-hidden {
 //   visibility: hidden;
 //   opacity: 0;
@@ -136,4 +122,5 @@ ul {
 
 button.hidden {
   display: none;
+  pointer-events: none;
 }
