@@ -17,7 +17,7 @@ const loadMoreBtn = new LoadMoreBtn({
 });
 
 refs.searchForm.addEventListener('submit', onSubmit);
-loadMoreBtn.button.addEventListener('click', fetchPhotos);
+loadMoreBtn.button.addEventListener('click', onLoadMore);
 
 let lightbox = new SimpleLightbox('.gallery a', {
   captions: true,
@@ -28,7 +28,7 @@ let lightbox = new SimpleLightbox('.gallery a', {
 async function onSubmit(e) {
   e.preventDefault();
 
-  loadMoreBtn.hide();
+  loadMoreBtn.show();
   pixabayApi.resetPage();
   const form = e.currentTarget;
   const searchQuery = form.elements.searchQuery.value.trim();
@@ -41,6 +41,7 @@ async function onSubmit(e) {
     );
     return;
   }
+
   clearGalleryList();
   fetchPhotos().finally(() => form.reset());
 }
@@ -78,10 +79,13 @@ async function getPhotosMarkup() {
 
 async function onLoadMore() {
   try {
-    loadMoreBtn.disable();
-    const result = await pixabayApi.getPhotos();
+    const per_page = pixabayApi.per_page;
     const markup = await getPhotosMarkup();
-    if (result.hits.length === 0) {
+    loadMoreBtn.disable();
+
+    const { hits, totalHits } = await pixabayApi.getPhotos();
+
+    if (hits.length < totalHits || hits.length > per_page) {
       Notiflix.Notify.info(
         `We're sorry, but you've reached the end of search results.`
       );
@@ -90,23 +94,9 @@ async function onLoadMore() {
     }
     updateGalleryList(markup);
     loadMoreBtn.enable();
-    if (result.hits.length < 40 || result.hits.length >= result.totalHits) {
-      Notiflix.Notify.info(
-        `We're sorry, but you've reached the end of search results.`
-      );
-      loadMoreBtn.hide();
-      return;
-    }
   } catch (err) {
-    onError(err);
+    console.error(err);
   }
-  // const { hits, totalHits } = await pixabayApi.getPhotos();
-  // const per_page = pixabayApi.per_page;
-  // if (totalHits > per_page) {
-  //   loadMoreBtn.hide();
-  //   return Notiflix.Notify.info(
-  //     `We're sorry, but you've reached the end of search results.`
-  //   );
 }
 
 function createMarkup({

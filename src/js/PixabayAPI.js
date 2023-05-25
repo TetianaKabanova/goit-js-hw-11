@@ -7,11 +7,10 @@ export default class PixabayAPI {
   constructor() {
     this.searchQuery = '';
     this.page = 1;
-    this.per_page = 40;
   }
 
   async getPhotos() {
-    const url = `${PixabayAPI.URL}?key=${PixabayAPI.API_KEY}&q=${this.searchQuery}&per_page=${this.per_page}&page=${this.page}&image_type=photo&orientation=horizontal&safesearch=true`;
+    const url = `${PixabayAPI.URL}?key=${PixabayAPI.API_KEY}&q=${this.searchQuery}&per_page=40&page=${this.page}&image_type=photo&orientation=horizontal&safesearch=true`;
 
     const { data } = await axios.get(url);
 
