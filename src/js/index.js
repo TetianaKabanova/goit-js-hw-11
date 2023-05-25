@@ -85,7 +85,7 @@ async function onLoadMore() {
 
     const { hits, totalHits } = await pixabayApi.getPhotos();
 
-    if (hits.length < totalHits || hits.length > per_page) {
+    if (hits.length < per_page || hits.length >= totalHits) {
       Notiflix.Notify.info(
         `We're sorry, but you've reached the end of search results.`
       );
