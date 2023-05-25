@@ -28,12 +28,11 @@ let lightbox = new SimpleLightbox('.gallery a', {
 async function onSubmit(e) {
   e.preventDefault();
 
-  loadMoreBtn.show();
+  loadMoreBtn.hide();
+  pixabayApi.resetPage();
   const form = e.currentTarget;
   const searchQuery = form.elements.searchQuery.value.trim();
   pixabayApi.query = searchQuery;
-  pixabayApi.resetPage();
-  pixabayApi.page = 1;
 
   if (searchQuery === '') {
     loadMoreBtn.hide();
@@ -78,27 +77,36 @@ async function getPhotosMarkup() {
 }
 
 async function onLoadMore() {
-  pixabayApi.page += 1;
-
   try {
-    const response = await pixabayApi.getPhotos();
-
-    const lastPage = Math.ceil(response.data.totalHits / pixabayApi.per_page);
-
-    lightbox.refresh();
-    smoothScroll();
-
-    if (lastPage === pixabayApi.page) {
+    loadMoreBtn.disable();
+    const result = await pixabayApi.getPhotos();
+    const markup = await getPhotosMarkup();
+    if (result.hits.length === 0) {
       Notiflix.Notify.info(
         `We're sorry, but you've reached the end of search results.`
       );
-      window.removeEventListener('scroll', handleScroll);
+      loadMoreBtn.hide();
       return;
     }
-    return hits.reduce((markup, hit) => markup + createMarkup(hit), '');
+    updateGalleryList(markup);
+    loadMoreBtn.enable();
+    if (result.hits.length < 40 || result.hits.length >= result.totalHits) {
+      Notiflix.Notify.info(
+        `We're sorry, but you've reached the end of search results.`
+      );
+      loadMoreBtn.hide();
+      return;
+    }
   } catch (err) {
     onError(err);
   }
+  // const { hits, totalHits } = await pixabayApi.getPhotos();
+  // const per_page = pixabayApi.per_page;
+  // if (totalHits > per_page) {
+  //   loadMoreBtn.hide();
+  //   return Notiflix.Notify.info(
+  //     `We're sorry, but you've reached the end of search results.`
+  //   );
 }
 
 function createMarkup({
@@ -156,13 +164,13 @@ function onError(err) {
 
 // *нескінченне завантаження зображень під час прокручування сторінки
 
-function handleScroll() {
-  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-  if (scrollTop + clientHeight >= scrollHeight - 5) {
-    onLoadMore();
-  }
-}
-window.addEventListener('scroll', handleScroll);
+// function handleScroll() {
+//   const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+//   if (scrollTop + clientHeight >= scrollHeight - 5) {
+//     onLoadMore();
+//   }
+// }
+// window.addEventListener('scroll', handleScroll);
 // *плавне прокручування сторінки після запиту і відтворення кожної наступної групи зображень
 
 function smoothScroll() {
