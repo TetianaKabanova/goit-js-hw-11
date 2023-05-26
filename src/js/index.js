@@ -8,7 +8,6 @@ const refs = {
   searchForm: document.querySelector('.search-form'),
   gallery: document.querySelector('.gallery'),
 };
-
 let page = 1;
 const pixabayApi = new PixabayAPI();
 const loadMoreBtn = new LoadMoreBtn({
@@ -40,9 +39,23 @@ async function onSubmit(e) {
     Notiflix.Notify.failure('Please specify your search query.');
     return;
   }
-
   clearGalleryList();
   fetchPhotos().finally(() => form.reset());
+  try {
+    const { totalHits } = await pixabayApi.getPhotos();
+    if (totalHits < pixabayApi.per_page) {
+      loadMoreBtn.hide();
+      return Notiflix.Notify.warning(
+        "We're sorry, but you've reached the end of search results."
+      );
+    }
+
+    if (page === 1) {
+      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
+    }
+  } catch (err) {
+    onError(err);
+  }
 }
 
 async function fetchPhotos() {
@@ -63,13 +76,14 @@ async function getPhotosMarkup() {
   try {
     const { hits, totalHits } = await pixabayApi.getPhotos();
     const totalPages = pixabayApi.countTotalPages(totalHits);
-
+    const lastPage = Math.ceil(totalHits / pixabayApi.per_page);
     loadMoreBtn.show();
     loadMoreBtn.enable();
 
     console.log(page);
     console.log(totalPages);
     console.log(totalHits);
+    console.log(pixabayApi.per_page);
 
     if (totalHits === 0) {
       loadMoreBtn.hide();
@@ -79,7 +93,7 @@ async function getPhotosMarkup() {
       return;
     }
 
-    if (page > totalPages) {
+    if (lastPage === pixabayApi.page) {
       loadMoreBtn.hide();
       return Notiflix.Notify.warning(
         "We're sorry, but you've reached the end of search results."
@@ -90,14 +104,16 @@ async function getPhotosMarkup() {
       Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
     }
 
-    if (hits.length === totalHits) {
-      loadMoreBtn.hide();
-      Notiflix.Notify.warning('These are all images for your request.');
-    }
-
     page += 1;
 
     return hits.reduce((markup, hit) => markup + createMarkup(hit), '');
+
+    if (totalHits < pixabayApi.per_page) {
+      loadMoreBtn.hide();
+      return Notiflix.Notify.warning(
+        "We're sorry, but you've reached the end of search results."
+      );
+    }
   } catch (err) {
     onError(err);
   }
