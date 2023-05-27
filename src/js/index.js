@@ -8,6 +8,7 @@ const refs = {
   searchForm: document.querySelector('.search-form'),
   gallery: document.querySelector('.gallery'),
 };
+
 let page = 1;
 const pixabayApi = new PixabayAPI();
 const loadMoreBtn = new LoadMoreBtn({
@@ -24,46 +25,25 @@ let lightbox = new SimpleLightbox('.gallery a', {
   captionDelay: 250,
 });
 
-async function onSubmit(e) {
+function onSubmit(e) {
   e.preventDefault();
   page = 1;
   loadMoreBtn.show();
-  pixabayApi.resetPage();
 
   const form = e.currentTarget;
-  const searchQuery = form.elements.searchQuery.value.trim();
-  pixabayApi.query = searchQuery;
+  pixabayApi.query = form.elements.searchQuery.value.trim();
 
-  if (searchQuery === '') {
-    loadMoreBtn.hide();
-    Notiflix.Notify.failure('Please specify your search query.');
-    return;
-  }
+  pixabayApi.resetPage();
   clearGalleryList();
   fetchPhotos().finally(() => form.reset());
-  try {
-    const { totalHits } = await pixabayApi.getPhotos();
-    if (totalHits < pixabayApi.per_page) {
-      loadMoreBtn.hide();
-      return Notiflix.Notify.warning(
-        "We're sorry, but you've reached the end of search results."
-      );
-    }
-
-    if (page === 1) {
-      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
-    }
-  } catch (err) {
-    onError(err);
-  }
 }
 
 async function fetchPhotos() {
-  loadMoreBtn.disable();
+  // loadMoreBtn.disable();
   try {
     const markup = await getPhotosMarkup();
     updateGalleryList(markup);
-    loadMoreBtn.enable();
+    // loadMoreBtn.enable();
 
     if (page > 2) {
       smoothScroll();
@@ -72,28 +52,33 @@ async function fetchPhotos() {
     onError(err);
   }
 }
+
 async function getPhotosMarkup() {
   try {
     const { hits, totalHits } = await pixabayApi.getPhotos();
     const totalPages = pixabayApi.countTotalPages(totalHits);
-    const lastPage = Math.ceil(totalHits / pixabayApi.per_page);
-    loadMoreBtn.show();
-    loadMoreBtn.enable();
+
+    // loadMoreBtn.show();
+    // loadMoreBtn.enable();
 
     console.log(page);
     console.log(totalPages);
     console.log(totalHits);
-    console.log(pixabayApi.per_page);
 
-    if (totalHits === 0) {
+    if (pixabayApi.query === '') {
       loadMoreBtn.hide();
-      Notiflix.Notify.failure(
-        `Sorry, there are no images matching your search query. Please try again.`
-      );
+      Notiflix.Notify.failure('Please specify your search query.');
       return;
     }
 
-    if (lastPage === pixabayApi.page) {
+    if (totalHits === 0) {
+      loadMoreBtn.hide();
+      return Notiflix.Notify.failure(
+        `Sorry, there are no images matching your search query. Please try again.`
+      );
+    }
+
+    if (page > totalPages) {
       loadMoreBtn.hide();
       return Notiflix.Notify.warning(
         "We're sorry, but you've reached the end of search results."
@@ -104,18 +89,19 @@ async function getPhotosMarkup() {
       Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
     }
 
+    if (hits.length === totalHits) {
+      loadMoreBtn.hide();
+      Notiflix.Notify.warning('These are all images for your request.');
+    }
+
     page += 1;
 
     return hits.reduce((markup, hit) => markup + createMarkup(hit), '');
-
-    if (totalHits < pixabayApi.per_page) {
-      loadMoreBtn.hide();
-      return Notiflix.Notify.warning(
-        "We're sorry, but you've reached the end of search results."
-      );
-    }
   } catch (err) {
-    onError(err);
+    loadMoreBtn.hide();
+    Notiflix.Notify.warning(
+      "We're sorry, but you've reached the end of search results."
+    );
   }
 }
 
